@@ -24,14 +24,21 @@ fun Lobby(navController: NavController, viewModel: GameModel) {
     val games by viewModel.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
     LaunchedEffect(games) {
+        Log.d("Lobby", "Games updated: ${games.keys}")
         games.forEach { (gameId, game) ->
+            Log.d("Lobby", "Game state: ${game.gameState}")
+
+            Log.d("Lobby", "Checking game: $gameId, state: ${game.gameState}")
             if ((game.player1Id == viewModel.localPlayerId.value || game.player2Id == viewModel.localPlayerId.value) &&
-                (game.gameState in listOf("player1_turn", "player2_turn"))
+                    game.gameState in listOf("player1_turn", "player2_turn", "invite")
             ) {
+                Log.d("Lobby", "Navigating to game: $gameId with state: ${game.gameState}")
                 navController.navigate("game/$gameId")
             }
+
         }
     }
+
 
     Scaffold(
         topBar = {

@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
+
 @Composable
 fun Player(navController: NavController, viewModel: GameModel) {
     val sharedPreferences = LocalContext.current.getSharedPreferences("TicTacToePrefs", Context.MODE_PRIVATE)
@@ -45,10 +46,10 @@ fun Player(navController: NavController, viewModel: GameModel) {
             Button(
                 onClick = {
                     if (playerName.isNotBlank()) {
-                        Log.d("PlayerScreen", "Attempting to add player: $playerName")
                         viewModel.addPlayer(playerName) { playerId ->
                             Log.d("PlayerScreen", "Player added with ID: $playerId")
                             sharedPreferences.edit().putString("playerId", playerId).apply()
+                            viewModel.localPlayerId.value = playerId // Ensure localPlayerId is set
                             navController.navigate("lobby")
                         }
                     }
@@ -57,6 +58,7 @@ fun Player(navController: NavController, viewModel: GameModel) {
             ) {
                 Text("Start")
             }
+
         }
     }
 }

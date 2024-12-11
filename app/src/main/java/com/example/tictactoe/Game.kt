@@ -22,6 +22,9 @@ fun Game(navController: NavController, viewModel: GameModel, gameId: String?) {
     val players by viewModel.playerMap.asStateFlow().collectAsStateWithLifecycle()
     val games by viewModel.gameMap.asStateFlow().collectAsStateWithLifecycle()
     val localPlayerId by remember { viewModel.localPlayerId }.collectAsStateWithLifecycle()
+    val rows = 3
+    val cols = 3
+
 
     val playerName = players[localPlayerId]?.name ?: "Player"
 

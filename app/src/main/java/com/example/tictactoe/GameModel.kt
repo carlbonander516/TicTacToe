@@ -1,6 +1,6 @@
 package com.example.tictactoe
 
-import androidx.compose.runtime.mutableStateOf
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -17,14 +17,15 @@ data class Game(
     var player2Id: String = ""
 )
 
-const val rows = 3
-const val cols = 3
-
 class GameModel : ViewModel() {
     val db = Firebase.firestore // Ensure FirebaseApp is initialized before this
     var localPlayerId = MutableStateFlow<String?>(null)
     val playerMap = MutableStateFlow<Map<String, Player>>(emptyMap())
     val gameMap = MutableStateFlow<Map<String, Game>>(emptyMap())
+
+    init {
+        initGame()
+    }
 
     fun initGame() {
         // Listen for player updates
@@ -48,35 +49,42 @@ class GameModel : ViewModel() {
         }
     }
 
-    fun addPlayer(name: String, callback: (String) -> Unit) {
-        val newPlayer = Player(name)
-        db.collection("players")
-            .add(newPlayer)
-            .addOnSuccessListener { documentRef ->
-                callback(documentRef.id)
-            }
-    }
-
+    // Updated createGame function
     fun createGame(opponentId: String) {
+        val localId = localPlayerId.value ?: run {
+            Log.e("GameModel", "localPlayerId is null. Cannot create game.")
+            return
+        }
+
         val newGame = Game(
-            player1Id = localPlayerId.value!!,
-            player2Id = opponentId
+            player1Id = localId,
+            player2Id = opponentId,
+            gameState = "player1_turn" // Set initial state
         )
         db.collection("games").add(newGame)
+            .addOnSuccessListener {
+                Log.d("GameModel", "Game successfully created: ${it.id}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("GameModel", "Failed to create game", e)
+            }
     }
 
     fun checkGameState(gameId: String?, cell: Int) {
         if (gameId == null) return
+        Log.d("GameModel", "Updating game state for game: $gameId")
 
         val game = gameMap.value[gameId] ?: return
         val isMyTurn =
             (game.gameState == "player1_turn" && game.player1Id == localPlayerId.value) ||
                     (game.gameState == "player2_turn" && game.player2Id == localPlayerId.value)
+        Log.d("GameModel", "Updating game state for game: $gameId")
 
         if (!isMyTurn) return
 
         val gameBoard = game.gameBoard.toMutableList()
         if (gameBoard[cell] != 0) return
+        Log.d("GameModel", "Updating game state for game: $gameId")
 
         gameBoard[cell] = if (game.gameState == "player1_turn") 1 else 2
         val nextGameState = when (checkWinner(gameBoard)) {
@@ -89,10 +97,24 @@ class GameModel : ViewModel() {
         db.collection("games").document(gameId).update(
             "gameBoard", gameBoard,
             "gameState", nextGameState
-        )
+        ).addOnSuccessListener {
+            Log.d("GameModel", "Game state updated: $nextGameState")
+        }.addOnFailureListener { e ->
+            Log.e("GameModel", "Failed to update game state", e)
+        }
+    }
+    fun addPlayer(name: String, callback: (String) -> Unit) {
+        val newPlayer = Player(name)
+        db.collection("players").add(newPlayer)
+            .addOnSuccessListener { documentRef ->
+                callback(documentRef.id)
+            }
+            .addOnFailureListener { e ->
+                Log.e("GameModel", "Failed to add player", e)
+            }
     }
 
-    fun checkWinner(board: List<Int>): Int {
+    private fun checkWinner(board: List<Int>): Int {
         val winningLines = listOf(
             listOf(0, 1, 2), listOf(3, 4, 5), listOf(6, 7, 8), // Rows
             listOf(0, 3, 6), listOf(1, 4, 7), listOf(2, 5, 8), // Columns
