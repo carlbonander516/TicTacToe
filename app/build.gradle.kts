@@ -11,7 +11,8 @@ android {
     defaultConfig {
         applicationId = "com.example.tictactoe"
         minSdk = 28
-        targetSdk = 35 // Match compileSdk if possible
+        //noinspection OldTargetApi
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
