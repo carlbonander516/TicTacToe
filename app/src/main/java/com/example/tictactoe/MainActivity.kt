@@ -3,45 +3,38 @@ package com.example.tictactoe
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.tictactoe.ui.theme.TicTacToeTheme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            TicTacToeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            appNavigation()
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun appNavigation() {
+    // Firebase must be initialized before this
+    val viewModel = GameModel()
+    viewModel.initGame()
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TicTacToeTheme {
-        Greeting("Android")
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "player") {
+        composable("player") { Player(navController, viewModel) }
+        composable("lobby") { Lobby(navController, viewModel) }
+        composable("game/{gameId}") { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString("gameId")
+            Game(navController, viewModel, gameId)
+        }
     }
 }
