@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Player(navController: NavController, viewModel: GameModel) {
     val sharedPreferences = LocalContext.current.getSharedPreferences("TicTacToePrefs", Context.MODE_PRIVATE)
@@ -26,7 +27,7 @@ fun Player(navController: NavController, viewModel: GameModel) {
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFB3E5FC)) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFE1F5FE)) { // Soft blue background
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -34,13 +35,20 @@ fun Player(navController: NavController, viewModel: GameModel) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Welcome to Tic Tac Toe!", style = MaterialTheme.typography.headlineLarge)
+            Text(
+                "TicTacToe",
+                style = MaterialTheme.typography.headlineLarge.copy(color = Color(0xFF01579B)) // Deep Blue
+            )
 
             OutlinedTextField(
                 value = playerName,
                 onValueChange = { playerName = it },
                 label = { Text("Enter your name") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0288D1),
+                    unfocusedBorderColor = Color(0xFF81D4FA)
+                )
             )
 
             Button(
@@ -54,11 +62,12 @@ fun Player(navController: NavController, viewModel: GameModel) {
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)) // Blue
             ) {
-                Text("Start")
+                Text("Enter Game", color = Color.White)
             }
-
         }
     }
 }
+
